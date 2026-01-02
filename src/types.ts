@@ -18,6 +18,12 @@ export interface Post {
   url: string | null
 }
 
+// Type definitions for User data from PostgREST
+export interface User {
+  userid: number
+  name: string | null
+}
+
 export interface PostFeedProps {
   apiBaseUrl: string
 }

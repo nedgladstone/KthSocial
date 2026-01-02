@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import type { Post, PostFeedProps } from '../types'
+import { useState, useEffect, useCallback } from 'react'
+import type { Post, PostFeedProps, User } from '../types'
 
 function PostFeed({ apiBaseUrl }: PostFeedProps): JSX.Element {
   const [posts, setPosts] = useState<Post[]>([])
+  const [users, setUsers] = useState<Map<number, User>>(new Map())
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -11,21 +12,43 @@ function PostFeed({ apiBaseUrl }: PostFeedProps): JSX.Element {
     setError(null)
 
     try {
-      // Fetch posts ordered by date (newest first) and include user information
-      const response = await fetch(`${apiBaseUrl}/post?order=date.desc`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-      })
+      // Fetch posts and users in parallel
+      const [postsResponse, usersResponse] = await Promise.all([
+        fetch(`${apiBaseUrl}/post?order=date.desc`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }),
+        fetch(`${apiBaseUrl}/users`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        })
+      ])
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      if (!postsResponse.ok) {
+        throw new Error(`HTTP error! status: ${postsResponse.status}`)
       }
 
-      const data: Post[] = await response.json()
-      setPosts(data)
+      if (!usersResponse.ok) {
+        throw new Error(`HTTP error! status: ${usersResponse.status}`)
+      }
+
+      const postsData: Post[] = await postsResponse.json()
+      const usersData: User[] = await usersResponse.json()
+
+      // Create a map of userid -> user for quick lookup
+      const usersMap = new Map<number, User>()
+      usersData.forEach(user => {
+        usersMap.set(user.userid, user)
+      })
+
+      setPosts(postsData)
+      setUsers(usersMap)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error'
       setError(`Error fetching posts: ${errorMessage}. Make sure the PostgREST backend is running at ${apiBaseUrl}`)
@@ -88,10 +111,23 @@ function PostFeed({ apiBaseUrl }: PostFeedProps): JSX.Element {
           <div className="post-header">
             <div className="post-author">
               <div className="author-avatar">
-                {post.userid ? String(post.userid).charAt(0) : '?'}
+                {(() => {
+                  const user = post.userid ? users.get(post.userid) : null
+                  const userName = user?.name
+                  return userName
+                    ? userName.charAt(0).toUpperCase()
+                    : post.userid
+                      ? String(post.userid).charAt(0)
+                      : '?'
+                })()}
               </div>
               <div className="author-info">
-                <span className="author-name">User {post.userid || 'Unknown'}</span>
+                <span className="author-name">
+                  {(() => {
+                    const user = post.userid ? users.get(post.userid) : null
+                    return user?.name || `User ${post.userid || 'Unknown'}`
+                  })()}
+                </span>
                 <span className="post-date">{formatDate(post.date)}</span>
               </div>
             </div>
