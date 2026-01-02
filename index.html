@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KTH Social - Person Management</title>
+    <style>
+        #fallback-message {
+            display: none;
+            padding: 40px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        #fallback-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <div id="fallback-message">
+        <h1 style="color: #667eea;">KTH Social</h1>
+        <h2 style="color: #c33;">Cannot Load Application</h2>
+        <p>This React/TypeScript application must be run through Vite's development server.</p>
+        <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-top: 20px;">
+            <h3>To run this app:</h3>
+            <ol style="text-align: left;">
+                <li>Open a terminal in this directory</li>
+                <li>Install dependencies: <code style="background: #e0e0e0; padding: 2px 6px; border-radius: 3px;">npm install</code></li>
+                <li>Start the dev server: <code style="background: #e0e0e0; padding: 2px 6px; border-radius: 3px;">npm run dev</code></li>
+                <li>Open the URL shown (usually <code style="background: #e0e0e0; padding: 2px 6px; border-radius: 3px;">http://localhost:5173</code>)</li>
+            </ol>
+        </div>
+        <p style="margin-top: 20px; color: #666; font-size: 0.9em;">
+            <strong>Note:</strong> You cannot open this HTML file directly in a browser. 
+            The TypeScript/JSX code needs to be compiled by Vite.
+        </p>
+    </div>
+    <script type="module">
+        // Check if we're running through Vite (has import.meta.url)
+        // If not, show fallback message
+        try {
+            // This will fail if not running through a module bundler
+            if (typeof import.meta === 'undefined' || !import.meta.url) {
+                throw new Error('Not running through Vite')
+            }
+        } catch (e) {
+            document.getElementById('fallback-message').classList.add('show')
+            document.getElementById('root').style.display = 'none'
+        }
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
